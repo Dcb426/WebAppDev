@@ -1,0 +1,29 @@
+#players {
+    overflow: hidden;
+  
+}
+#players #player1, #players #player2{
+    
+  float: left;
+    width: 450px; 
+    height: 700px; 
+    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    padding: 0 2%;
+  border: 2px solid black;
+  
+}
+#players #player2 {  
+  float: right;
+   margin-left: auto;
+    width: 325px;
+    height: 500px; 
+    border: 2px solid black;
+} 
+  
+#hangmancanvas{ 
+  margin-top: 10px;
+  border: 1px solid black;
+}
