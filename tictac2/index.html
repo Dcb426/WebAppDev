@@ -1,0 +1,181 @@
+<head lang="en">
+    <meta charset="UTF-8">
+		<title>TicTacToeGame</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+	</head>
+	<body>
+    <div id = "username"> waiting on opponet </div><div id = "username2"> waiting on opponet </div>
+    <div class = "board">
+	<button id = "a0"></button>
+	<button id = "a1"></button>
+	<button id = "a2"></button>
+	<button id = "a3"></button>
+	<button id = "a4"></button>
+	<button id = "b0"></button>
+	<button id = "b1"></button>
+	<button id = "b2"></button>
+	<button id = "b3"></button>
+	<button id = "b4"></button>
+	<button id = "c0"></button>
+	<button id = "c1"></button>
+	<button id = "c2"></button>
+	<button id = "c3"></button>
+	<button id = "c4"></button>
+	<button id = "d0"></button>
+	<button id = "d1"></button>
+	<button id = "d2"></button>
+	<button id = "d3"></button>
+	<button id = "d4"></button>
+	<button id = "e0"></button>
+	<button id = "e1"></button>
+	<button id = "e2"></button>
+	<button id = "e3"></button>
+	<button id = "e4"></button>
+	<div id = "messages" style="margin-top:20px; font-color:white;"> Waiting for opponent to join... </div>
+</div>
+	<script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript">
+    var george = window.location.search;
+    var username = george.substring(12);
+    var socket = io('http://ec2-35-166-206-88.us-west-2.compute.amazonaws.com:8081'),
+    myTurn = true,symbol;
+	function getBoardState() {
+		var obj = [];
+		$('.board button').each(function(){
+			obj[$(this).attr('id')] = $(this).text()||'';
+		});
+		return obj;
+	}
+	function isGameOver(){
+		var state = getBoardState(),
+		matches3 =['XXX','OOO'],
+		rows = [
+		state.a0 + state.a1 + state.a2, // 3 horizontal
+		state.b0 + state.b1 + state.b2,
+		state.c0 + state.c1 + state.c2,
+		state.d0 + state.d1 + state.d2,
+		state.e0 + state.e1 + state.e2,
+		state.a1 + state.a2 + state.a3,
+		state.b1 + state.b2 + state.b3,
+		state.c1 + state.c2 + state.c3,
+		state.d1 + state.d2 + state.d3,
+		state.e1 + state.e2 + state.e3,
+		state.a2 + state.a3 + state.a4,
+		state.b2 + state.b3 + state.b4,
+		state.c2 + state.c3 + state.c4,
+		state.d2 + state.d3 + state.d4,
+		state.e2 + state.e3 + state.e4,
+
+		state.a0 + state.b0 + state.c0, // 3 vertical
+		state.a1 + state.b1 + state.c1,
+		state.a2 + state.b2 + state.c2,
+		state.a3 + state.b3 + state.c3,
+		state.a4 + state.b4 + state.c4,
+		state.b0 + state.c0 + state.d0,
+		state.b1 + state.c1 + state.d1,
+		state.b2 + state.c2 + state.d2,
+		state.b3 + state.c3 + state.d3,
+		state.b4 + state.c4 + state.d4,
+		state.c0 + state.d0 + state.e0,
+		state.c1 + state.d1 + state.e1,
+		state.c2 + state.d2 + state.e2,
+		state.c3 + state.d3 + state.e3,
+		state.c4 + state.d4 + state.e4,
+
+		state.a0 + state.b1 + state.c2, // 3 diagonal
+		state.b1 + state.c2 + state.d3,
+		state.c2 + state.d3 + state.e4,
+		state.e0 + state.d1 + state.c2,
+		state.d1 + state.c2 + state.b3,
+		state.c2 + state.b3 + state.a4,
+		state.a2 + state.b3 + state.c4,
+		state.a1 + state.b2 + state.c3,
+		state.b2 + state.c3 + state.d4,
+		state.b0 + state.c1 + state.d2,
+		state.c1 + state.d2 + state.e3,
+		state.c0 + state.d1 + state.e2,
+		state.e2 + state.d3 + state.c4,
+		state.e1 + state.d2 + state.c3,
+		state.d2 + state.c3 + state.b4,
+		state.d0 + state.c1 + state.b2,
+		state.c1 + state.b2 + state.a3,
+		state.c0 + state.b1 + state.a2
+		],
+		rows;
+		for (var i = 0; i < rows.length; i++) {
+			if (rows[i] === matches3[0] || rows[i] === matches3[1]){
+				return true;
+			}
+		}
+	}
+
+
+
+	function renderTurnMessage(){
+    if(!myTurn){
+			$('#messages').text('Your opponent\'s turn');
+			$('.board button').attr('disabled', true);
+		} else {
+			$('#messages').text('Your turn.');
+			$('.board button').removeAttr('disabled');
+		}
+	}
+
+	function makeMove (e) {
+		e.preventDefault();
+
+		if (!myTurn) {
+			return;
+		}
+
+		if ($(this).text().length) {
+			return;
+		}
+
+		socket.emit('make.move', {
+			symbol: symbol,
+			position:$(this).attr('id')
+		});
+	}
+
+	socket.on('move.made', function(data){
+		$('#' + data.position).text(data.symbol);
+
+		myTurn = (data.symbol !== symbol);
+
+		if (!isGameOver()) {
+			renderTurnMessage();
+		} else {
+			if (myTurn) {
+				$('#messages').text('Game over. You lost. Loser.');
+				alert('You Lost, Bloo');
+			} else {
+				$('#messages').text('Gamve over. You win. Blee.');
+				alert('You Won, Blee');
+			}
+
+			$('.board button').attr('disabled', true);
+		}
+	});
+
+	socket.on('game.begin', function(data){
+		symbol = data.symbol;
+		myTurn = (symbol === 'X');
+		$('#username').text(username);
+    	$('#username2').text(data.opponent);
+		renderTurnMessage();
+	});
+
+	socket.on('opponent.left', function(){
+		$('#messages').text('Your opponent left the game.');
+		$('.board button').attr('disabled', true);
+	});
+
+	$(function(){
+		$('.board button').attr('disabled', true);
+		$('.board> button').on('click',makeMove);
+	});
+	</script>
+	</body>
+</html>
